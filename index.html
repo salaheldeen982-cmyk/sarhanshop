@@ -499,6 +499,11 @@
   let productImages = ["", "", ""];
   let currentUser = null;
 
+  // معالجة نتيجة تسجيل الدخول بالتحويل
+  firebase.auth().getRedirectResult().catch((error) => {
+    console.error(error);
+  });
+
   firebase.auth().onAuthStateChanged((user) => {
     const userDisplay = document.getElementById('userDisplay');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -562,96 +567,4 @@
       return;
     }
     const input = document.getElementById('chatInput');
-    const text = input.value.trim();
-    if (text === "") return;
-
-    const message = {
-      sender: currentUser.displayName || currentUser.email,
-      senderId: currentUser.uid,
-      text: text,
-      timestamp: Date.now()
-    };
-
-    database.ref('messages').push(message);
-    input.value = "";
-  }
-
-  function loadChatMessages() {
-    const chatMessages = document.getElementById('chatMessages');
-    database.ref('messages').on('value', (snapshot) => {
-      chatMessages.innerHTML = '';
-      snapshot.forEach((childSnapshot) => {
-        const msg = childSnapshot.val();
-        const msgElement = document.createElement('div');
-        msgElement.style.margin = '5px 0';
-        msgElement.style.fontSize = '12px';
-        msgElement.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
-        chatMessages.appendChild(msgElement);
-      });
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    });
-  }
-
-  function updatePreview() {
-    const name = document.getElementById('inputName').value;
-    const price = document.getElementById('inputPrice').value;
-    if(name) document.getElementById('previewTitleDisplay').innerText = name;
-    if(price) document.getElementById('previewPriceDisplay').innerText = price;
-  }
-
-  function updateImages() {
-    productImages[0] = document.getElementById('imgUrlInput1').value;
-    productImages[1] = document.getElementById('imgUrlInput2').value;
-    productImages[2] = document.getElementById('imgUrlInput3').value;
-    if(productImages[0]) document.getElementById('previewImageElement').src = productImages[0];
-  }
-
-  function changeImage(index) {
-    if(productImages[index]) {
-      document.getElementById('previewImageElement').src = productImages[index];
-    }
-  }
-
-  function updateVideo() {
-    const url = document.getElementById('videoUrlInput').value;
-    const container = document.getElementById('videoContainer');
-    if(url) {
-      let embedUrl = url;
-      if(url.includes("watch?v=")) {
-         embedUrl = url.replace("watch?v=", "embed/");
-      }
-      document.getElementById('previewVideoElement').src = embedUrl;
-      container.style.display = "block";
-    } else {
-      container.style.display = "none";
-    }
-  }
-
-  function addReview() {
-    const ratingValue = document.getElementById('userRating').value;
-    const reviewText = document.getElementById('userReviewText').value.trim();
-    
-    if (!reviewText) {
-      alert("الرجاء كتابة نص التقييم.");
-      return;
-    }
-
-    const stars = '⭐'.repeat(ratingValue);
-    const currentUser = firebase.auth().currentUser;
-    const userName = currentUser ? currentUser.displayName : "مستخدم";
-
-    const reviewHtml = `
-      <div class="review-card">
-        <div style="font-weight: bold; font-size: 13px;">${userName} ${stars}</div>
-        <div style="font-size: 12px; color: #94a3b8;">${reviewText}</div>
-      </div>
-    `;
-
-    document.getElementById('reviewsContainer').insertAdjacentHTML('afterbegin', reviewHtml);
-    document.getElementById('userReviewText').value = ''; 
-    alert("شكراً لتقييمك!");
-  }
-</script>
-
-</body>
-</html>
+    const text = input
