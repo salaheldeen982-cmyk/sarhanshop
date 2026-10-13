@@ -377,7 +377,29 @@
 
 </div>
 
+<!-- مكتبات فايربيس (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
 <script>
+  // إعدادات فايربيس الخاصة بمشروعك
+  const firebaseConfig = {
+    apiKey: "AIzaSyBMpZ7CXOJbgKpMqOjzsbbCcpHBlslU3mw",
+    authDomain: "salah-52496.firebaseapp.com",
+    databaseURL: "https://salah-52496-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "salah-52496",
+    storageBucket: "salah-52496.firebasestorage.app",
+    messagingSenderId: "235427387836",
+    appId: "1:235427387836:web:aebcbdc5da3e485403f3b9",
+    measurementId: "G-7P9J6DH7ZB"
+  };
+
+  // تهيئة فايربيس
+  const app = firebase.initializeApp(firebaseConfig);
+  const analytics = firebase.analytics(app);
+
   function handleLogin() {
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
@@ -395,40 +417,4 @@
       adminPanel.style.display = "none";
       mainContainer.classList.add('customer-view');
       alert("مرحباً بك في متجر سرحان شوب!");
-      document.getElementById('authModal').style.display = "none";
-    } else {
-      alert("الرجاء إدخال اسم المستخدم وكلمة المرور بشكل صحيح.");
-    }
-  }
-
-  function logout() {
-    document.getElementById('authModal').style.display = "flex";
-    document.getElementById('loginUser').value = "";
-    document.getElementById('loginPass').value = "";
-    document.getElementById('adminDashboardPanel').style.display = "none";
-    document.getElementById('mainContainer').classList.add('customer-view');
-  }
-
-  function updatePreview() {
-    const name = document.getElementById('inputName').value;
-    const price = document.getElementById('inputPrice').value;
-    if(name) document.getElementById('previewTitleDisplay').innerText = name;
-    if(price) document.getElementById('previewPriceDisplay').innerText = price;
-  }
-
-  function updateImageFromUrl() {
-    const url = document.getElementById('imgUrlInput').value;
-    if(url) {
-      document.getElementById('previewImageElement').src = url;
-    }
-  }
-
-  function changeCurrency() {
-    const currency = document.getElementById('currency').value;
-    const symbolMap = { 'USD': '$', 'EGP': 'ج.م', 'SAR': 'ر.س' };
-    document.getElementById('currencySymbol').innerText = symbolMap[currency] || '$';
-  }
-</script>
-
-</body>
-</html>
+      document.getElementById
