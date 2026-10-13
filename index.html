@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>سرحان شوب - متجرك الذكي</title>
 <style>
   :root {
@@ -21,8 +21,10 @@
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 15px;
     direction: rtl;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
   
   header {
@@ -35,6 +37,12 @@
     margin-bottom: 25px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     border: 1px solid var(--border-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px var(--glow-color);
   }
   
   .logo {
@@ -73,11 +81,13 @@
   #authModal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(11, 15, 25, 0.9);
+    background: rgba(11, 15, 25, 0.95);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
   }
 
   .auth-box {
@@ -88,6 +98,12 @@
     box-shadow: 0 0 30px var(--glow-color);
     width: 350px;
     text-align: center;
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   .main-container {
@@ -112,11 +128,11 @@
     border-radius: 14px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     border: 1px solid var(--border-color);
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
   }
   
   .panel:hover {
-    transform: translateY(-6px) scale(1.01);
+    transform: translateY(-5px);
     box-shadow: 0 12px 40px var(--glow-color);
     border-color: var(--accent-color);
   }
@@ -180,7 +196,7 @@
   }
   
   .btn-primary:hover {
-    transform: scale(1.02);
+    transform: translateY(-2px);
     box-shadow: 0 6px 25px var(--accent-color);
     filter: brightness(1.1);
   }
@@ -240,7 +256,7 @@
   }
 
   .product-preview-card:hover {
-    transform: scale(1.03);
+    transform: scale(1.02);
     box-shadow: 0 10px 30px var(--glow-color);
   }
 
@@ -251,7 +267,7 @@
   }
 
   .product-preview-card:hover .product-img {
-    transform: scale(1.06) rotate(1deg);
+    transform: scale(1.05);
   }
 
   .badge {
@@ -287,23 +303,31 @@
   #chatWidget {
     position: fixed;
     bottom: 20px;
-    left: 20px;
+    right: 20px;
     z-index: 999;
   }
   .chat-btn {
     background: var(--accent-color);
     color: #0b0f19;
-    padding: 15px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 4px 15px var(--glow-color);
     transition: all 0.3s;
+    font-size: 22px;
+  }
+  .chat-btn:hover {
+    transform: scale(1.1) rotate(-10deg);
   }
   .chat-box {
     display: none;
     position: fixed;
     bottom: 80px;
-    left: 20px;
+    right: 15px;
     width: 300px;
     background: var(--card-bg);
     border: 1px solid var(--accent-color);
@@ -356,7 +380,7 @@
   </div>
 </header>
 
-<div class="main-container customer-view" id="mainContainer">
+<main class="main-container customer-view" id="mainContainer">
   <div class="panel">
     <h2>🛒 إتمام الطلب السريع</h2>
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -376,12 +400,13 @@
       <label>عنوان التوصيل بالتفصيل</label>
       <textarea rows="2" placeholder="المدينة، الشارع، رقم العمارة..."></textarea>
     </div>
-    <button class="btn-primary">تأكيد الطلب الآن 🚀</button>
+    <button class="btn-primary" onclick="confirmOrder()">تأكيد الطلب الآن 🚀</button>
   </div>
 
   <div class="panel" id="adminDashboardPanel" style="display: none;">
     <h2>لوحة تحكم الدروب شيبنج (إضافة منتج)</h2>
     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">أدخل بيانات المنتج لتحديث المتجر فوراً.</p>
+    
     <div class="form-group">
       <label><span>⏱️</span> اسم المنتج</label>
       <input type="text" id="inputName" placeholder="مثال: ساعة ذكية فائقة المواصفات" oninput="updatePreview()">
@@ -390,27 +415,38 @@
       <label><span>💲</span> سعر المنتج</label>
       <input type="number" id="inputPrice" placeholder="49.99" oninput="updatePreview()">
     </div>
+
+    <!-- حقول رفع الصور من الجهاز -->
     <div class="form-group">
-      <label><span>📷</span> الصورة الأولى (رابط URL)</label>
-      <input type="text" id="imgUrlInput1" placeholder="أدخل رابط الصورة الأولى" oninput="updateImages()">
+      <label><span>📷</span> رفع الصورة الأولى</label>
+      <input type="file" id="imgUpload1" accept="image/*" onchange="previewUploadedImage(event, 0)">
     </div>
     <div class="form-group">
-      <label><span>📷</span> الصورة الثانية (رابط URL)</label>
-      <input type="text" id="imgUrlInput2" placeholder="أدخل رابط الصورة الثانية" oninput="updateImages()">
+      <label><span>📷</span> رفع الصورة الثانية</label>
+      <input type="file" id="imgUpload2" accept="image/*" onchange="previewUploadedImage(event, 1)">
     </div>
     <div class="form-group">
-      <label><span>📷</span> الصورة الثالثة (رابط URL)</label>
-      <input type="text" id="imgUrlInput3" placeholder="أدخل رابط الصورة الثالثة" oninput="updateImages()">
+      <label><span>📷</span> رفع الصورة الثالثة</label>
+      <input type="file" id="imgUpload3" accept="image/*" onchange="previewUploadedImage(event, 2)">
     </div>
+
+    <!-- حقل رفع الفيديو من الجهاز -->
     <div class="form-group">
-      <label><span>🎥</span> رابط فيديو المنتج (يوتيوب)</label>
-      <input type="text" id="videoUrlInput" placeholder="أدخل رابط الفيديو" oninput="updateVideo()">
+      <label><span>🎥</span> رفع فيديو المنتج من الجهاز</label>
+      <input type="file" id="videoUpload" accept="video/*" onchange="previewUploadedVideo(event)">
     </div>
+
+    <!-- خانة الكميات والمخزون -->
+    <div class="form-group">
+      <label><span>📦</span> إجمالي كمية المنتج المتاحة</label>
+      <input type="number" id="inputTotalStock" placeholder="مثال: 50 قطعة" oninput="updateStock()">
+    </div>
+
     <div class="form-group">
       <label><span>📝</span> وصف المنتج</label>
       <textarea rows="2" placeholder="اكتب ميزات المنتج التشويقية..."></textarea>
     </div>
-    <button class="btn-primary">تحديث ونشر المنتج في المتجر ✨</button>
+    <button class="btn-primary" onclick="updateStock()">حفظ البيانات ونشر المنتج ✨</button>
   </div>
 
   <div>
@@ -418,22 +454,33 @@
       <span class="badge">عرض خاص</span>
       <div style="margin: 15px 0; overflow: hidden; border-radius: 10px;">
         <img id="previewImageElement" src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60" alt="المنتج" class="product-img">
-        <div style="margin-top: 10px;">
-          <button onclick="changeImage(0)">📸 1</button>
-          <button onclick="changeImage(1)">📸 2</button>
-          <button onclick="changeImage(2)">📸 3</button>
+        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 5px;">
+          <button onclick="changeImage(0)" style="padding: 5px 10px; border-radius: 5px; background: var(--surface-color); color: #fff; border: 1px solid #2a3b5c; cursor: pointer;">📸 1</button>
+          <button onclick="changeImage(1)" style="padding: 5px 10px; border-radius: 5px; background: var(--surface-color); color: #fff; border: 1px solid #2a3b5c; cursor: pointer;">📸 2</button>
+          <button onclick="changeImage(2)" style="padding: 5px 10px; border-radius: 5px; background: var(--surface-color); color: #fff; border: 1px solid #2a3b5c; cursor: pointer;">📸 3</button>
         </div>
       </div>
       
+      <!-- حاوية الفيديو -->
       <div id="videoContainer" style="margin: 15px 0; display: none;">
-        <iframe id="previewVideoElement" width="100%" height="200" src="" frameborder="0" allowfullscreen></iframe>
+        <video id="previewVideoElement" width="100%" height="200" controls style="border-radius: 8px;">
+          متصفحك لا يدعم عرض الفيديو
+        </video>
       </div>
 
       <h3 id="previewTitleDisplay" style="color: var(--accent-color); margin: 10px 0;">ساعة ذكية فائقة المواصفات</h3>
       <p style="color: #94a3b8; font-size: 13px;">ساعة بتصميم أنيق ومقاومة للماء، تدعم تتبع اللياقة البدنية.</p>
+      
       <div style="font-size: 22px; font-weight: bold; color: #10b981; margin: 10px 0;">
         <span id="previewPriceDisplay">49.99</span> <span id="currencySymbol">ج.م</span>
       </div>
+
+      <!-- عرض المخزون والمبيعات -->
+      <div style="margin-top: 15px; font-size: 13px; color: #94a3b8; border-top: 1px solid #2a3b5c; padding-top: 10px; text-align: right;">
+        <div>حالة المخزون: <span id="stockStatusDisplay" style="color: #10b981; font-weight: bold;">غير محدد</span></div>
+        <div style="margin-top: 4px;">الكمية المباعة حتى الآن: <span id="soldCountDisplay" style="color: #fff; font-weight: bold;">0</span> قطع</div>
+      </div>
+
       <div style="color: #f59e0b; font-size: 16px; margin: 10px 0;">
         ⭐⭐⭐⭐⭐ <span style="color: #94a3b8; font-size: 14px;">(4.8 / 24 تقييم)</span>
       </div>
@@ -459,8 +506,7 @@
       </div>
     </div>
   </div>
-
-</div>
+</main>
 
 <div id="chatWidget">
   <div class="chat-btn" onclick="toggleChat()">💬</div>
@@ -498,6 +544,8 @@
 
   let productImages = ["", "", ""];
   let currentUser = null;
+  let totalStock = 0;
+  let soldCount = 0;
 
   firebase.auth().onAuthStateChanged((user) => {
     const userDisplay = document.getElementById('userDisplay');
@@ -512,6 +560,7 @@
       
       checkIfAdmin(user.email);
       loadChatMessages();
+      loadStockData();
     } else {
       currentUser = null;
       userDisplay.style.display = 'none';
@@ -533,7 +582,6 @@
     }
   }
 
-  // تم تعديلها هنا لاستخدام Popup لمنع الريفريش والشاشة البيضاء
   function handleGoogleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(provider).catch((error) => {
@@ -600,32 +648,93 @@
     if(price) document.getElementById('previewPriceDisplay').innerText = price;
   }
 
-  function updateImages() {
-    productImages[0] = document.getElementById('imgUrlInput1').value;
-    productImages[1] = document.getElementById('imgUrlInput2').value;
-    productImages[2] = document.getElementById('imgUrlInput3').value;
-    if(productImages[0]) document.getElementById('previewImageElement').src = productImages[0];
+  // معاينة ورفع الصور من الجهاز محلياً
+  function previewUploadedImage(event, index) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        productImages[index] = e.target.result;
+        if (index === 0) {
+          document.getElementById('previewImageElement').src = e.target.result;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   function changeImage(index) {
     if(productImages[index]) {
       document.getElementById('previewImageElement').src = productImages[index];
+    } else {
+      alert("لم تقم برفع صورة في هذا الخانة بعد.");
     }
   }
 
-  function updateVideo() {
-    const url = document.getElementById('videoUrlInput').value;
-    const container = document.getElementById('videoContainer');
-    if(url) {
-      let embedUrl = url;
-      if(url.includes("watch?v=")) {
-         embedUrl = url.replace("watch?v=", "embed/");
-      }
-      document.getElementById('previewVideoElement').src = embedUrl;
-      container.style.display = "block";
-    } else {
-      container.style.display = "none";
+  // معاينة ورفع الفيديو من الجهاز محلياً
+  function previewUploadedVideo(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const videoURL = URL.createObjectURL(file);
+      const videoElement = document.getElementById('previewVideoElement');
+      videoElement.src = videoURL;
+      document.getElementById('videoContainer').style.display = "block";
     }
+  }
+
+  // دوال المخزون والكميات المباعة
+  function updateStock() {
+    const stockInput = document.getElementById('inputTotalStock').value;
+    totalStock = parseInt(stockInput) || 0;
+    
+    database.ref('product/stock').set({
+      total: totalStock,
+      sold: soldCount
+    });
+    
+    updateStockDisplay();
+    alert("تم تحديث المخزون وحفظ البيانات بنجاح!");
+  }
+
+  function loadStockData() {
+    database.ref('product/stock').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        totalStock = data.total || 0;
+        soldCount = data.sold || 0;
+      }
+      updateStockDisplay();
+    });
+  }
+
+  function updateStockDisplay() {
+    const statusDisplay = document.getElementById('stockStatusDisplay');
+    const soldDisplay = document.getElementById('soldCountDisplay');
+    
+    let remaining = totalStock - soldCount;
+    
+    if (totalStock > 0 && remaining <= 0) {
+      statusDisplay.innerText = "نفذت الكمية ❌";
+      statusDisplay.style.color = "#ef4444";
+    } else if (totalStock === 0) {
+      statusDisplay.innerText = "غير محدد";
+      statusDisplay.style.color = "#10b981";
+    } else {
+      statusDisplay.innerText = `متاح (${remaining} قطعة متبقية)`;
+      statusDisplay.style.color = "#10b981";
+    }
+    soldDisplay.innerText = soldCount;
+  }
+
+  function confirmOrder() {
+    if (totalStock > 0 && (totalStock - soldCount <= 0)) {
+      alert("عذراً، هذا المنتج غير متوفر حالياً (نفذت الكمية).");
+      return;
+    }
+    
+    soldCount += 1;
+    database.ref('product/stock/sold').set(soldCount);
+    alert("تم تأكيد طلبك بنجاح! شكراً لتسوقك في سرحان شوب 🚀");
   }
 
   function addReview() {
