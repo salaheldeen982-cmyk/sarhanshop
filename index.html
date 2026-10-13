@@ -70,7 +70,6 @@
     box-shadow: 0 0 10px var(--glow-color);
   }
   
-  /* نافذة تسجيل الدخول */
   #authModal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -97,7 +96,6 @@
     gap: 20px;
   }
 
-  /* عند إخفاء لوحة التحكم للمستخدم العادي يتحول التخطيط تلقائياً */
   .main-container.customer-view {
     grid-template-columns: 1fr 1.5fr;
   }
@@ -285,11 +283,39 @@
     border-color: var(--accent-color);
     transform: translateX(-5px);
   }
+
+  /* Chat Support */
+  #chatWidget {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 999;
+  }
+  .chat-btn {
+    background: var(--accent-color);
+    color: #0b0f19;
+    padding: 15px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--glow-color);
+    transition: all 0.3s;
+  }
+  .chat-box {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    width: 300px;
+    background: var(--card-bg);
+    border: 1px solid var(--accent-color);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+  }
 </style>
 </head>
 <body>
 
-<!-- نافذة تسجيل الدخول -->
 <div id="authModal">
   <div class="auth-box">
     <h2>تسجيل الدخول - سرحان شوب</h2>
@@ -303,9 +329,7 @@
       <input type="password" id="loginPass" placeholder="••••••••">
     </div>
     <button class="btn-primary" onclick="handleLogin()">دخول 🚀</button>
-    
     <div style="margin: 15px 0; color: #94a3b8; font-size: 14px;">أو</div>
-    
     <button class="btn-google" onclick="handleGoogleLogin()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 20px; height: 20px;">
       تسجيل الدخول عبر Google
@@ -317,10 +341,8 @@
   <div class="logo">سرحان شوب</div>
   <div class="header-controls">
     <div class="currency-selector">
-      <select id="currency" onchange="changeCurrency()">
-        <option value="USD">🇺🇸 USD ($)</option>
+      <select id="currency">
         <option value="EGP">🇪🇬 EGP (جنيه)</option>
-        <option value="SAR">🇸🇦 SAR (ريال)</option>
       </select>
     </div>
     <div class="interactive-icon" title="تسجيل خروج" onclick="logout()">🚪</div>
@@ -328,8 +350,6 @@
 </header>
 
 <div class="main-container customer-view" id="mainContainer">
-  
-  <!-- القسم الأيمن: إتمام الطلب وطرق الدفع -->
   <div class="panel">
     <h2>🛒 إتمام الطلب السريع</h2>
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -337,7 +357,6 @@
       <div class="interactive-icon" style="flex: 1;" title="بطاقة ائتمان">💳</div>
       <div class="interactive-icon" style="flex: 1;" title="PayPal">🅿️</div>
     </div>
-    
     <div class="form-group">
       <label>الاسم الكامل</label>
       <input type="text" placeholder="محمد أحمد">
@@ -353,68 +372,108 @@
     <button class="btn-primary">تأكيد الطلب الآن 🚀</button>
   </div>
 
-  <!-- القسم الأوسط: لوحة تحكم الدروب شيبنج (تظهر لصلاح فقط) -->
   <div class="panel" id="adminDashboardPanel" style="display: none;">
     <h2>لوحة تحكم الدروب شيبنج (إضافة منتج)</h2>
     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">أدخل بيانات المنتج لتحديث المتجر فوراً.</p>
-    
     <div class="form-group">
       <label><span>⏱️</span> اسم المنتج</label>
       <input type="text" id="inputName" placeholder="مثال: ساعة ذكية فائقة المواصفات" oninput="updatePreview()">
     </div>
-    
     <div class="form-group">
       <label><span>💲</span> سعر المنتج</label>
       <input type="number" id="inputPrice" placeholder="49.99" oninput="updatePreview()">
     </div>
-
     <div class="form-group">
-      <label><span>📷</span> صورة المنتج (رابط URL)</label>
-      <input type="text" id="imgUrlInput" placeholder="أدخل رابط الصورة مباشرة" oninput="updateImageFromUrl()">
+      <label><span>📷</span> الصورة الأولى (رابط URL)</label>
+      <input type="text" id="imgUrlInput1" placeholder="أدخل رابط الصورة الأولى" oninput="updateImages()">
     </div>
-
+    <div class="form-group">
+      <label><span>📷</span> الصورة الثانية (رابط URL)</label>
+      <input type="text" id="imgUrlInput2" placeholder="أدخل رابط الصورة الثانية" oninput="updateImages()">
+    </div>
+    <div class="form-group">
+      <label><span>📷</span> الصورة الثالثة (رابط URL)</label>
+      <input type="text" id="imgUrlInput3" placeholder="أدخل رابط الصورة الثالثة" oninput="updateImages()">
+    </div>
+    <div class="form-group">
+      <label><span>🎥</span> رابط فيديو المنتج (يوتيوب)</label>
+      <input type="text" id="videoUrlInput" placeholder="أدخل رابط الفيديو" oninput="updateVideo()">
+    </div>
     <div class="form-group">
       <label><span>📝</span> وصف المنتج</label>
       <textarea rows="2" placeholder="اكتب ميزات المنتج التشويقية..."></textarea>
     </div>
-
     <button class="btn-primary">تحديث ونشر المنتج في المتجر ✨</button>
   </div>
 
-  <!-- القسم الأيسر: عرض المنتج الحي وتقييمات العملاء -->
   <div>
     <div class="product-preview-card">
       <span class="badge">عرض خاص</span>
       <div style="margin: 15px 0; overflow: hidden; border-radius: 10px;">
         <img id="previewImageElement" src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60" alt="المنتج" class="product-img">
+        <div style="margin-top: 10px;">
+          <button onclick="changeImage(0)">📸 1</button>
+          <button onclick="changeImage(1)">📸 2</button>
+          <button onclick="changeImage(2)">📸 3</button>
+        </div>
       </div>
+      
+      <div id="videoContainer" style="margin: 15px 0; display: none;">
+        <iframe id="previewVideoElement" width="100%" height="200" src="" frameborder="0" allowfullscreen></iframe>
+      </div>
+
       <h3 id="previewTitleDisplay" style="color: var(--accent-color); margin: 10px 0;">ساعة ذكية فائقة المواصفات</h3>
       <p style="color: #94a3b8; font-size: 13px;">ساعة بتصميم أنيق ومقاومة للماء، تدعم تتبع اللياقة البدنية.</p>
       <div style="font-size: 22px; font-weight: bold; color: #10b981; margin: 10px 0;">
-        <span id="previewPriceDisplay">49.99</span> <span id="currencySymbol">$</span>
+        <span id="previewPriceDisplay">49.99</span> <span id="currencySymbol">ج.م</span>
       </div>
-      <div style="color: #f59e0b; font-size: 14px;">⭐⭐⭐⭐⭐ (4.8 / 24 تقييم)</div>
+      <div style="color: #f59e0b; font-size: 16px; margin: 10px 0;">
+        ⭐⭐⭐⭐⭐ <span style="color: #94a3b8; font-size: 14px;">(4.8 / 24 تقييم)</span>
+      </div>
     </div>
 
     <div class="panel reviews-section" style="margin-top: 20px; padding: 15px;">
       <h3 style="color: var(--accent-color); font-size: 16px; margin-top:0;">تقييمات العملاء المميزة</h3>
-      <div class="review-card">
-        <div style="font-weight: bold; font-size: 13px;">أحمد محمود ⭐⭐⭐⭐⭐</div>
-        <div style="font-size: 12px; color: #94a3b8;">المنتج وصل بنفس المواصفات وبجودة ممتازة!</div>
+      <div style="margin-bottom: 15px;">
+        <div style="font-weight: bold; font-size: 13px; color: #94a3b8;">إضافة تقييم جديد:</div>
+        <select id="userRating" style="background: var(--surface-color); color: #fff; padding: 5px; border-radius: 5px; margin-top: 5px;">
+          <option value="5">⭐⭐⭐⭐⭐ (5 نجوم)</option>
+          <option value="4">⭐⭐⭐⭐ (4 نجوم)</option>
+          <option value="3">⭐⭐⭐ (3 نجوم)</option>
+        </select>
+        <textarea id="userReviewText" rows="2" placeholder="اكتب رأيك هنا..." style="width: 100%; margin-top: 5px; background: var(--surface-color); color: #fff; border: 1px solid #2a3b5c; padding: 8px; border-radius: 6px;"></textarea>
+        <button onclick="addReview()" style="margin-top: 5px; background: var(--accent-color); color: #000; padding: 6px 12px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;">إرسال التقييم</button>
+      </div>
+      <div id="reviewsContainer">
+        <div class="review-card">
+          <div style="font-weight: bold; font-size: 13px;">أحمد محمود ⭐⭐⭐⭐⭐</div>
+          <div style="font-size: 12px; color: #94a3b8;">المنتج وصل بنفس المواصفات وبجودة ممتازة!</div>
+        </div>
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- مكتبات فايربيس (CDN) -->
+<!-- Chat Widget -->
+<div id="chatWidget">
+  <div class="chat-btn" onclick="toggleChat()">💬</div>
+  <div class="chat-box" id="chatBox">
+    <h4 style="margin-top: 0; color: var(--accent-color);">خدمة العملاء</h4>
+    <p style="font-size: 12px; color: #94a3b8;">أهلاً بك، كيف يمكننا مساعدتك اليوم؟</p>
+    <div style="background: var(--surface-color); padding: 10px; border-radius: 8px; height: 100px; overflow-y: auto; margin-bottom: 10px;">
+      <p style="font-size: 11px;">مرحباً، أنا هنا لمساعدتك.</p>
+    </div>
+    <input type="text" placeholder="اكتب رسالتك..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #2a3b5c; background: var(--surface-color); color: #fff;">
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-  // إعدادات فايربيس الخاصة بمشروعك
   const firebaseConfig = {
     apiKey: "AIzaSyBMpZ7CXOJbgKpMqOjzsbbCcpHBlslU3mw",
     authDomain: "salah-52496.firebaseapp.com",
@@ -426,9 +485,10 @@
     measurementId: "G-7P9J6DH7ZB"
   };
 
-  // تهيئة فايربيس
   const app = firebase.initializeApp(firebaseConfig);
   const analytics = firebase.analytics(app);
+
+  let productImages = ["", "", ""];
 
   function handleLogin() {
     const user = document.getElementById('loginUser').value.trim();
@@ -483,17 +543,62 @@
     if(price) document.getElementById('previewPriceDisplay').innerText = price;
   }
 
-  function updateImageFromUrl() {
-    const url = document.getElementById('imgUrlInput').value;
-    if(url) {
-      document.getElementById('previewImageElement').src = url;
+  function updateImages() {
+    productImages[0] = document.getElementById('imgUrlInput1').value;
+    productImages[1] = document.getElementById('imgUrlInput2').value;
+    productImages[2] = document.getElementById('imgUrlInput3').value;
+    if(productImages[0]) document.getElementById('previewImageElement').src = productImages[0];
+  }
+
+  function changeImage(index) {
+    if(productImages[index]) {
+      document.getElementById('previewImageElement').src = productImages[index];
     }
   }
 
-  function changeCurrency() {
-    const currency = document.getElementById('currency').value;
-    const symbolMap = { 'USD': '$', 'EGP': 'ج.م', 'SAR': 'ر.س' };
-    document.getElementById('currencySymbol').innerText = symbolMap[currency] || '$';
+  function updateVideo() {
+    const url = document.getElementById('videoUrlInput').value;
+    const container = document.getElementById('videoContainer');
+    if(url) {
+      let embedUrl = url;
+      if(url.includes("watch?v=")) {
+         embedUrl = url.replace("watch?v=", "embed/");
+      }
+      document.getElementById('previewVideoElement').src = embedUrl;
+      container.style.display = "block";
+    } else {
+      container.style.display = "none";
+    }
+  }
+
+  function addReview() {
+    const ratingValue = document.getElementById('userRating').value;
+    const reviewText = document.getElementById('userReviewText').value.trim();
+    
+    if (!reviewText) {
+      alert("الرجاء كتابة نص التقييم.");
+      return;
+    }
+
+    const stars = '⭐'.repeat(ratingValue);
+    const currentUser = firebase.auth().currentUser;
+    const userName = currentUser ? currentUser.displayName : "مستخدم";
+
+    const reviewHtml = `
+      <div class="review-card">
+        <div style="font-weight: bold; font-size: 13px;">${userName} ${stars}</div>
+        <div style="font-size: 12px; color: #94a3b8;">${reviewText}</div>
+      </div>
+    `;
+
+    document.getElementById('reviewsContainer').insertAdjacentHTML('afterbegin', reviewHtml);
+    document.getElementById('userReviewText').value = ''; 
+    alert("شكراً لتقييمك!");
+  }
+
+  function toggleChat() {
+    const box = document.getElementById('chatBox');
+    box.style.display = box.style.display === "block" ? "none" : "block";
   }
 </script>
  
