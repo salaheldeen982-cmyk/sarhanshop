@@ -209,6 +209,7 @@
     border: 1px solid #2a3b5c;
   }
 
+  /* تم ضبط مكان زر خدمة العملاء ليكون في أسفل يمين الشاشة وبشكل واضح للموبايل */
   #chatWidget {
     position: fixed;
     bottom: 20px;
@@ -294,7 +295,7 @@
   <div class="panel">
     <h2>🛒 إتمام الطلب السريع</h2>
     <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-      <div class="interactive-icon" style="flex: 1;" title="الدفع عند الاستلام">💵</div>
+      <div class="interactive-icon" style="flex: 1;" title="الدخل عند الاستلام">💵</div>
       <div class="interactive-icon" style="flex: 1;" title="بطاقة ائتمان">💳</div>
       <div class="interactive-icon" style="flex: 1;" title="PayPal">🅿️</div>
     </div>
@@ -310,7 +311,7 @@
       <label>عنوان التوصيل بالتفصيل</label>
       <textarea rows="2" placeholder="المدينة، الشارع..."></textarea>
     </div>
-    <button class="btn-primary" onclick="confirmOrder()">تأكيد الطلب الآن 🚀</button>
+    <button class="btn-primary">تأكيد الطلب الآن 🚀</button>
   </div>
 
   <div class="panel" id="adminDashboardPanel" style="display: none;">
@@ -323,35 +324,7 @@
       <label>سعر المنتج</label>
       <input type="number" id="inputPrice" placeholder="السعر" oninput="updatePreview()">
     </div>
-    
-    <div class="form-group">
-      <label>📷 الصورة الأولى </label>
-      <input type="file" id="imgUploadInput1" accept="image/*" onchange="previewImage(event, 1)">
-    </div>
-    <div class="form-group">
-      <label>📷 الصورة الثانية </label>
-      <input type="file" id="imgUploadInput2" accept="image/*" onchange="previewImage(event, 2)">
-    </div>
-    <div class="form-group">
-      <label>📷 الصورة الثالثة </label>
-      <input type="file" id="imgUploadInput3" accept="image/*" onchange="previewImage(event, 3)">
-    </div>
-    <div class="form-group">
-      <label>🎥 رفع فيديو المنتج </label>
-      <input type="file" id="videoUploadInput" accept="video/*" onchange="previewVideo(event)">
-    </div>
-
-    <!-- إضافة حقول المخزون هنا -->
-    <div class="form-group">
-      <label>📦 إجمالي الكمية المتاحة </label>
-      <input type="number" id="inputTotalStock" placeholder="أدخل الكمية الإجمالية" oninput="updateStock()">
-    </div>
-    
-    <div class="form-group">
-      <label>📝 وصف المنتج</label>
-      <textarea rows="2" placeholder="اكتب ميزات المنتج التشويقية..."></textarea>
-    </div>
-    <button class="btn-primary" onclick="updateStock()">حفظ المخزون وتحديث المتجر ✨</button>
+    <button class="btn-primary">تحديث ونشر المنتج ✨</button>
   </div>
 
   <div>
@@ -360,25 +333,9 @@
       <div style="margin: 12px 0;">
         <img id="previewImageElement" src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60" alt="المنتج" class="product-img">
       </div>
-      <div style="margin-top: 10px;">
-        <button onclick="changeImage(1)">📸 1</button>
-        <button onclick="changeImage(2)">📸 2</button>
-        <button onclick="changeImage(3)">📸 3</button>
-      </div>
-      <div id="videoContainer" style="margin: 15px 0; display: none;">
-        <video id="previewVideoElement" width="100%" controls>
-          Your browser does not support the video tag.
-        </video>
-      </div>
       <h3 id="previewTitleDisplay" style="color: var(--accent-color); margin: 8px 0; font-size: 16px;">ساعة ذكية فائقة المواصفات</h3>
       <div style="font-size: 20px; font-weight: bold; color: #10b981; margin: 8px 0;">
         <span id="previewPriceDisplay">49.99</span> ج.م
-      </div>
-
-      <!-- عرض حالة المخزون والكمية المباعة -->
-      <div style="margin-top: 15px; font-size: 14px; color: #94a3b8; border-top: 1px solid #2a3b5c; padding-top: 10px;">
-        <div>حالة المخزون: <span id="stockStatusDisplay" style="color: #10b981; font-weight: bold;">غير محدد</span></div>
-        <div style="margin-top: 5px;">الكمية المباعة حتى الآن: <span id="soldCountDisplay" style="color: #fff; font-weight: bold;">0</span></div>
       </div>
     </div>
 
@@ -402,6 +359,7 @@
   </div>
 </div>
 
+<!-- زر خدمة العملاء في أسفل يمين الشاشة -->
 <div id="chatWidget">
   <div class="chat-btn" onclick="toggleChat()">💬</div>
   <div class="chat-box" id="chatBox">
@@ -435,11 +393,6 @@
   const database = firebase.database();
   let currentUser = null;
 
-  const uploadedImages = [null, null, null];
-  let uploadedVideoUrl = "";
-  let totalStock = 0;
-  let soldCount = 0;
-
   firebase.auth().onAuthStateChanged((user) => {
     const userDisplay = document.getElementById('userDisplay');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -452,7 +405,6 @@
       document.getElementById('authModal').style.display = 'none';
       checkIfAdmin(user.email);
       loadChatMessages();
-      loadStockData();
     } else {
       currentUser = null;
       userDisplay.style.display = 'none';
@@ -484,96 +436,69 @@
     });
   }
 
-  function previewImage(event, index) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        uploadedImages[index - 1] = e.target.result;
-        if (index === 1) {
-          document.getElementById('previewImageElement').src = e.target.result;
-        }
-      }
-      reader.readAsDataURL(file);
-    }
+  function toggleChat() {
+    const box = document.getElementById('chatBox');
+    box.style.display = box.style.display === "block" ? "none" : "block";
   }
 
-  function changeImage(index) {
-    if (uploadedImages[index - 1]) {
-      document.getElementById('previewImageElement').src = uploadedImages[index - 1];
-    } else {
-      alert("لم يتم رفع هذه الصورة بعد.");
-    }
-  }
-
-  function previewVideo(event) {
-    const file = event.target.files[0];
-    if (file) {
-      const videoURL = URL.createObjectURL(file);
-      const videoElement = document.getElementById('previewVideoElement');
-      videoElement.src = videoURL;
-      document.getElementById('videoContainer').style.display = 'block';
-    }
-  }
-
-  function updateStock() {
-    const stockInput = document.getElementById('inputTotalStock').value;
-    totalStock = parseInt(stockInput) || 0;
-    
-    database.ref('product/stock').set({
-      total: totalStock,
-      sold: soldCount
-    });
-    
-    updateStockDisplay();
-    alert("تم حفظ بيانات المخزون بنجاح!");
-  }
-
-  function loadStockData() {
-    database.ref('product/stock').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        totalStock = data.total || 0;
-        soldCount = data.sold || 0;
-      }
-      updateStockDisplay();
-    });
-  }
-
-  function updateStockDisplay() {
-    const statusDisplay = document.getElementById('stockStatusDisplay');
-    const soldDisplay = document.getElementById('soldCountDisplay');
-    
-    let remaining = totalStock - soldCount;
-    
-    if (remaining <= 0) {
-      statusDisplay.innerText = "نفذت الكمية";
-      statusDisplay.style.color = "#ef4444";
-    } else {
-      statusDisplay.innerText = `متاح (${remaining} قطع)`;
-      statusDisplay.style.color = "#10b981";
-    }
-    soldDisplay.innerText = soldCount;
-  }
-
-  function confirmOrder() {
-    if (totalStock - soldCount <= 0) {
-      alert("عذراً، هذا المنتج غير متوفر حالياً.");
+  function sendChatMessage() {
+    if (!currentUser) {
+      alert("يجب تسجيل الدخول أولاً.");
       return;
     }
-    
-    soldCount += 1;
-    database.ref('product/stock/sold').set(soldCount);
-    
-    alert("تم تأكيد طلبك بنجاح!");
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (text === "") return;
+
+    const message = {
+      sender: currentUser.displayName || currentUser.email,
+      text: text,
+      timestamp: Date.now()
+    };
+    database.ref('messages').push(message);
+    input.value = "";
   }
 
-  // الدوال الأخرى الخاصة بالتعليقات والمحادثة كما هي
-  function toggleChat() { /* ... */ }
-  function sendChatMessage() { /* ... */ }
-  function loadChatMessages() { /* ... */ }
-  function updatePreview() { /* ... */ }
-  function addReview() { /* ... */ }
+  function loadChatMessages() {
+    const chatMessages = document.getElementById('chatMessages');
+    database.ref('messages').on('value', (snapshot) => {
+      chatMessages.innerHTML = '';
+      snapshot.forEach((childSnapshot) => {
+        const msg = childSnapshot.val();
+        const msgElement = document.createElement('div');
+        msgElement.style.margin = '4px 0';
+        msgElement.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+        chatMessages.appendChild(msgElement);
+      });
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  }
+
+  function updatePreview() {
+    const name = document.getElementById('inputName').value;
+    const price = document.getElementById('inputPrice').value;
+    if(name) document.getElementById('previewTitleDisplay').innerText = name;
+    if(price) document.getElementById('previewPriceDisplay').innerText = price;
+  }
+
+  function addReview() {
+    const ratingValue = document.getElementById('userRating').value;
+    const reviewText = document.getElementById('userReviewText').value.trim();
+    if (!reviewText) {
+      alert("الرجاء كتابة نص التقييم.");
+      return;
+    }
+    const stars = '⭐'.repeat(ratingValue);
+    const userName = currentUser ? currentUser.displayName : "مستخدم";
+    const reviewHtml = `
+      <div class="review-card">
+        <div style="font-weight: bold; font-size: 12px;">${userName} ${stars}</div>
+        <div style="font-size: 11px; color: #94a3b8;">${reviewText}</div>
+      </div>
+    `;
+    document.getElementById('reviewsContainer').insertAdjacentHTML('afterbegin', reviewHtml);
+    document.getElementById('userReviewText').value = ''; 
+  }
 </script>
 
 </body>
