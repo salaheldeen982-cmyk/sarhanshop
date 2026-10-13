@@ -404,9 +404,19 @@
   </div>
 
   <div class="panel" id="adminDashboardPanel" style="display: none;">
-    <h2>لوحة تحكم الدروب شيبنج (إضافة منتج)</h2>
-    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">أدخل بيانات المنتج لتحديث المتجر فوراً.</p>
+    <h2>لوحة تحكم الدروب شيبنج (إدارة المنتجات)</h2>
+    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">اختر منتجاً للتعديل عليه أو أضف منتجاً جديداً.</p>
     
+    <!-- قائمة اختيار المنتج (للتعديل أو إضافة جديد) -->
+    <div class="form-group">
+      <label><span>📂</span> اختر المنتج للتعديل أو أضف جديد</label>
+      <select id="productSelector" onchange="selectProductForEdit()" style="background: var(--surface-color); color: #fff; padding: 10px; border-radius: 8px; width: 100%; border: 1px solid #2a3b5c;">
+        <option value="new">➕ إضافة منتج جديد تماماً</option>
+      </select>
+    </div>
+
+    <input type="hidden" id="editingProductId" value="">
+
     <div class="form-group">
       <label><span>⏱️</span> اسم المنتج</label>
       <input type="text" id="inputName" placeholder="مثال: ساعة ذكية فائقة المواصفات" oninput="updatePreview()">
@@ -416,7 +426,6 @@
       <input type="number" id="inputPrice" placeholder="49.99" oninput="updatePreview()">
     </div>
 
-    <!-- حقول رفع الصور من الجهاز -->
     <div class="form-group">
       <label><span>📷</span> رفع الصورة الأولى</label>
       <input type="file" id="imgUpload1" accept="image/*" onchange="previewUploadedImage(event, 0)">
@@ -430,23 +439,22 @@
       <input type="file" id="imgUpload3" accept="image/*" onchange="previewUploadedImage(event, 2)">
     </div>
 
-    <!-- حقل رفع الفيديو من الجهاز -->
     <div class="form-group">
       <label><span>🎥</span> رفع فيديو المنتج من الجهاز</label>
       <input type="file" id="videoUpload" accept="video/*" onchange="previewUploadedVideo(event)">
     </div>
 
-    <!-- خانة الكميات والمخزون -->
     <div class="form-group">
       <label><span>📦</span> إجمالي كمية المنتج المتاحة</label>
-      <input type="number" id="inputTotalStock" placeholder="مثال: 50 قطعة" oninput="updateStock()">
+      <input type="number" id="inputTotalStock" placeholder="مثال: 50 قطعة">
     </div>
 
     <div class="form-group">
       <label><span>📝</span> وصف المنتج</label>
-      <textarea rows="2" placeholder="اكتب ميزات المنتج التشويقية..."></textarea>
+      <textarea id="inputDescription" rows="2" placeholder="اكتب ميزات المنتج التشويقية..." oninput="updatePreview()"></textarea>
     </div>
-    <button class="btn-primary" onclick="updateStock()">حفظ البيانات ونشر المنتج ✨</button>
+    
+    <button class="btn-primary" onclick="saveOrUpdateProduct()">💾 حفظ ونشر التعديلات / المنتج الجديد ✨</button>
   </div>
 
   <div>
@@ -461,7 +469,6 @@
         </div>
       </div>
       
-      <!-- حاوية الفيديو -->
       <div id="videoContainer" style="margin: 15px 0; display: none;">
         <video id="previewVideoElement" width="100%" height="200" controls style="border-radius: 8px;">
           متصفحك لا يدعم عرض الفيديو
@@ -469,13 +476,12 @@
       </div>
 
       <h3 id="previewTitleDisplay" style="color: var(--accent-color); margin: 10px 0;">ساعة ذكية فائقة المواصفات</h3>
-      <p style="color: #94a3b8; font-size: 13px;">ساعة بتصميم أنيق ومقاومة للماء، تدعم تتبع اللياقة البدنية.</p>
+      <p id="previewDescDisplay" style="color: #94a3b8; font-size: 13px;">ساعة بتصميم أنيق ومقاومة للماء، تدعم تتبع اللياقة البدنية.</p>
       
       <div style="font-size: 22px; font-weight: bold; color: #10b981; margin: 10px 0;">
         <span id="previewPriceDisplay">49.99</span> <span id="currencySymbol">ج.م</span>
       </div>
 
-      <!-- عرض المخزون والمبيعات -->
       <div style="margin-top: 15px; font-size: 13px; color: #94a3b8; border-top: 1px solid #2a3b5c; padding-top: 10px; text-align: right;">
         <div>حالة المخزون: <span id="stockStatusDisplay" style="color: #10b981; font-weight: bold;">غير محدد</span></div>
         <div style="margin-top: 4px;">الكمية المباعة حتى الآن: <span id="soldCountDisplay" style="color: #fff; font-weight: bold;">0</span> قطع</div>
@@ -542,10 +548,11 @@
   const analytics = firebase.analytics(app);
   const database = firebase.database();
 
+  let productsList = {};
+  let currentActiveProductId = null;
   let productImages = ["", "", ""];
+  let productVideoUrl = "";
   let currentUser = null;
-  let totalStock = 0;
-  let soldCount = 0;
 
   firebase.auth().onAuthStateChanged((user) => {
     const userDisplay = document.getElementById('userDisplay');
@@ -560,7 +567,7 @@
       
       checkIfAdmin(user.email);
       loadChatMessages();
-      loadStockData();
+      loadProductsData();
     } else {
       currentUser = null;
       userDisplay.style.display = 'none';
@@ -644,11 +651,12 @@
   function updatePreview() {
     const name = document.getElementById('inputName').value;
     const price = document.getElementById('inputPrice').value;
+    const desc = document.getElementById('inputDescription').value;
     if(name) document.getElementById('previewTitleDisplay').innerText = name;
     if(price) document.getElementById('previewPriceDisplay').innerText = price;
+    if(desc) document.getElementById('previewDescDisplay').innerText = desc;
   }
 
-  // معاينة ورفع الصور من الجهاز محلياً
   function previewUploadedImage(event, index) {
     const file = event.target.files[0];
     if (file) {
@@ -667,74 +675,166 @@
     if(productImages[index]) {
       document.getElementById('previewImageElement').src = productImages[index];
     } else {
-      alert("لم تقم برفع صورة في هذا الخانة بعد.");
+      alert("لم تقم برفع صورة في هذه الخانة بعد.");
     }
   }
 
-  // معاينة ورفع الفيديو من الجهاز محلياً
   function previewUploadedVideo(event) {
     const file = event.target.files[0];
     if (file) {
       const videoURL = URL.createObjectURL(file);
+      productVideoUrl = videoURL;
       const videoElement = document.getElementById('previewVideoElement');
       videoElement.src = videoURL;
       document.getElementById('videoContainer').style.display = "block";
     }
   }
 
-  // دوال المخزون والكميات المباعة
-  function updateStock() {
-    const stockInput = document.getElementById('inputTotalStock').value;
-    totalStock = parseInt(stockInput) || 0;
-    
-    database.ref('product/stock').set({
-      total: totalStock,
-      sold: soldCount
-    });
-    
-    updateStockDisplay();
-    alert("تم تحديث المخزون وحفظ البيانات بنجاح!");
-  }
-
-  function loadStockData() {
-    database.ref('product/stock').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        totalStock = data.total || 0;
-        soldCount = data.sold || 0;
+  // تحميل المنتجات وإدارتها من قاعدة البيانات
+  function loadProductsData() {
+    database.ref('products').on('value', (snapshot) => {
+      productsList = snapshot.val() || {};
+      const selector = document.getElementById('productSelector');
+      selector.innerHTML = '<option value="new">➕ إضافة منتج جديد تماماً</option>';
+      
+      let firstKey = null;
+      for (let key in productsList) {
+        firstKey = firstKey || key;
+        const prod = productsList[key];
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.innerText = prod.name || "منتج بدون اسم";
+        selector.appendChild(opt);
       }
-      updateStockDisplay();
+
+      if (Object.keys(productsList).length > 0 && !currentActiveProductId) {
+        selector.value = firstKey;
+        selectProductForEdit();
+      }
     });
   }
 
-  function updateStockDisplay() {
+  function selectProductForEdit() {
+    const selectedVal = document.getElementById('productSelector').value;
+    document.getElementById('editingProductId').value = selectedVal;
+
+    if (selectedVal === "new") {
+      currentActiveProductId = null;
+      document.getElementById('inputName').value = "";
+      document.getElementById('inputPrice').value = "";
+      document.getElementById('inputTotalStock').value = "";
+      document.getElementById('inputDescription').value = "";
+      productImages = ["", "", ""];
+      productVideoUrl = "";
+      document.getElementById('previewImageElement').src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60";
+      document.getElementById('videoContainer').style.display = "none";
+      updateStockDisplay(0, 0);
+    } else {
+      currentActiveProductId = selectedVal;
+      const prod = productsList[selectedVal];
+      if (prod) {
+        document.getElementById('inputName').value = prod.name || "";
+        document.getElementById('inputPrice').value = prod.price || "";
+        document.getElementById('inputTotalStock').value = prod.totalStock || 0;
+        document.getElementById('inputDescription').value = prod.description || "";
+        
+        productImages = prod.images || ["", "", ""];
+        if (productImages[0]) {
+          document.getElementById('previewImageElement').src = productImages[0];
+        }
+
+        productVideoUrl = prod.videoUrl || "";
+        if (productVideoUrl) {
+          const videoElement = document.getElementById('previewVideoElement');
+          videoElement.src = productVideoUrl;
+          document.getElementById('videoContainer').style.display = "block";
+        } else {
+          document.getElementById('videoContainer').style.display = "none";
+        }
+
+        updateStockDisplay(prod.totalStock || 0, prod.soldCount || 0);
+        updatePreview();
+      }
+    }
+  }
+
+  function saveOrUpdateProduct() {
+    const name = document.getElementById('inputName').value.trim();
+    const price = document.getElementById('inputPrice').value.trim();
+    const totalStock = parseInt(document.getElementById('inputTotalStock').value) || 0;
+    const description = document.getElementById('inputDescription').value.trim();
+
+    if (!name || !price) {
+      alert("الرجاء إدخال اسم وسعر المنتج على الأقل.");
+      return;
+    }
+
+    let prodId = currentActiveProductId;
+    let soldCount = 0;
+
+    if (prodId && productsList[prodId]) {
+      soldCount = productsList[prodId].soldCount || 0;
+    } else {
+      prodId = database.ref('products').push().key;
+    }
+
+    const productData = {
+      name: name,
+      price: price,
+      totalStock: totalStock,
+      soldCount: soldCount,
+      description: description,
+      images: productImages,
+      videoUrl: productVideoUrl
+    };
+
+    database.ref('products/' + prodId).set(productData).then(() => {
+      alert("تم حفظ ونشر المنتج بنجاح! ✨");
+      currentActiveProductId = prodId;
+    }).catch((error) => {
+      console.error(error);
+      alert("حدث خطأ أثناء الحفظ.");
+    });
+  }
+
+  function updateStockDisplay(total, sold) {
     const statusDisplay = document.getElementById('stockStatusDisplay');
     const soldDisplay = document.getElementById('soldCountDisplay');
     
-    let remaining = totalStock - soldCount;
+    let remaining = total - sold;
     
-    if (totalStock > 0 && remaining <= 0) {
+    if (total > 0 && remaining <= 0) {
       statusDisplay.innerText = "نفذت الكمية ❌";
       statusDisplay.style.color = "#ef4444";
-    } else if (totalStock === 0) {
+    } else if (total === 0) {
       statusDisplay.innerText = "غير محدد";
       statusDisplay.style.color = "#10b981";
     } else {
       statusDisplay.innerText = `متاح (${remaining} قطعة متبقية)`;
       statusDisplay.style.color = "#10b981";
     }
-    soldDisplay.innerText = soldCount;
+    soldDisplay.innerText = sold;
   }
 
   function confirmOrder() {
-    if (totalStock > 0 && (totalStock - soldCount <= 0)) {
+    if (!currentActiveProductId || !productsList[currentActiveProductId]) {
+      alert("لا يوجد منتج محدد لإتمام الطلب.");
+      return;
+    }
+
+    const prod = productsList[currentActiveProductId];
+    let total = prod.totalStock || 0;
+    let sold = prod.soldCount || 0;
+
+    if (total > 0 && (total - sold <= 0)) {
       alert("عذراً، هذا المنتج غير متوفر حالياً (نفذت الكمية).");
       return;
     }
     
-    soldCount += 1;
-    database.ref('product/stock/sold').set(soldCount);
-    alert("تم تأكيد طلبك بنجاح! شكراً لتسوقك في سرحان شوب 🚀");
+    sold += 1;
+    database.ref(`products/${currentActiveProductId}/soldCount`).set(sold).then(() => {
+      alert("تم تأكيد طلبك بنجاح! شكراً لتسوقك في سرحان شوب 🚀");
+    });
   }
 
   function addReview() {
@@ -747,7 +847,6 @@
     }
 
     const stars = '⭐'.repeat(ratingValue);
-    const currentUser = firebase.auth().currentUser;
     const userName = currentUser ? currentUser.displayName : "مستخدم";
 
     const reviewHtml = `
