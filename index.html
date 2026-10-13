@@ -336,7 +336,7 @@
     <h2>تسجيل الدخول - سرحان شوب</h2>
     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">يرجى تسجيل الدخول بحساب جوجل للمتابعة</p>
     <button class="btn-google" onclick="handleGoogleLogin()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style=" width: 20px; height: 20px;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 20px; height: 20px;">
       تسجيل الدخول عبر Google
     </button>
   </div>
@@ -567,4 +567,42 @@
       return;
     }
     const input = document.getElementById('chatInput');
-    const text = input
+    const text = input.value.trim();
+    if (text === "") return;
+
+    const message = {
+      sender: currentUser.displayName || currentUser.email,
+      senderId: currentUser.uid,
+      text: text,
+      timestamp: Date.now()
+    };
+
+    database.ref('messages').push(message);
+    input.value = "";
+  }
+
+  function loadChatMessages() {
+    const chatMessages = document.getElementById('chatMessages');
+    database.ref('messages').on('value', (snapshot) => {
+      chatMessages.innerHTML = '';
+      snapshot.forEach((childSnapshot) => {
+        const msg = childSnapshot.val();
+        const msgElement = document.createElement('div');
+        msgElement.style.margin = '5px 0';
+        msgElement.style.fontSize = '12px';
+        msgElement.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+        chatMessages.appendChild(msgElement);
+      });
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  }
+
+  function updatePreview() { }
+  function updateImages() { }
+  function changeImage(index) { }
+  function updateVideo() { }
+  function addReview() { }
+</script>
+
+</body>
+</html>
