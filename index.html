@@ -284,7 +284,6 @@
     transform: translateX(-5px);
   }
 
-  /* Chat Support */
   #chatWidget {
     position: fixed;
     bottom: 20px;
@@ -335,19 +334,9 @@
 <div id="authModal">
   <div class="auth-box">
     <h2>تسجيل الدخول - سرحان شوب</h2>
-    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">أدخل بيانات حسابك للمتابعة</p>
-    <div class="form-group">
-      <label>اسم المستخدم</label>
-      <input type="text" id="loginUser" placeholder="أدخل اسم المستخدم">
-    </div>
-    <div class="form-group">
-      <label>كلمة المرور</label>
-      <input type="password" id="loginPass" placeholder="••••••••">
-    </div>
-    <button class="btn-primary" onclick="handleLogin()">دخول 🚀</button>
-    <div style="margin: 15px 0; color: #94a3b8; font-size: 14px;">أو</div>
+    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">يرجى تسجيل الدخول بحساب جوجل للمتابعة</p>
     <button class="btn-google" onclick="handleGoogleLogin()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 20px; height: 20px;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style=" width: 20px; height: 20px;">
       تسجيل الدخول عبر Google
     </button>
   </div>
@@ -521,6 +510,7 @@
       logoutBtn.style.display = 'block';
       document.getElementById('authModal').style.display = 'none';
       
+      checkIfAdmin(user.email);
       loadChatMessages();
     } else {
       currentUser = null;
@@ -530,25 +520,16 @@
     }
   });
 
-  function handleLogin() {
-    const user = document.getElementById('loginUser').value.trim();
-    const pass = document.getElementById('loginPass').value.trim();
+  function checkIfAdmin(email) {
     const adminPanel = document.getElementById('adminDashboardPanel');
     const mainContainer = document.getElementById('mainContainer');
     
-    if(user === "salah" && pass === "200123k") {
-      currentUser = { displayName: "صلاح (الأدمن)", email: "admin" };
-      document.getElementById('userDisplay').innerText = "مرحباً، صلاح (الأدمن)";
-      document.getElementById('userDisplay').style.display = 'block';
-      document.getElementById('logoutBtn').style.display = 'block';
+    if (email === "salah_admin@example.com") { // Replace with the actual email you use for the admin account
       adminPanel.style.display = "block";
       mainContainer.classList.remove('customer-view');
-      alert("مرحباً بك يا صلاح! تم تفعيل لوحة التحكم.");
-      document.getElementById('authModal').style.display = "none";
-    } else if(user !== "" && pass !== "") {
-      alert("بيانات الدخول غير صحيحة للحساب التجريبي.");
     } else {
-      alert("الرجاء إدخال اسم المستخدم وكلمة المرور.");
+      adminPanel.style.display = "none";
+      mainContainer.classList.add('customer-view');
     }
   }
 
@@ -573,7 +554,6 @@
     });
   }
 
-  // Chat System
   function toggleChat() {
     const box = document.getElementById('chatBox');
     box.style.display = box.style.display === "block" ? "none" : "block";
@@ -590,7 +570,7 @@
 
     const message = {
       sender: currentUser.displayName || currentUser.email,
-      senderId: currentUser.uid || 'admin',
+      senderId: currentUser.uid,
       text: text,
       timestamp: Date.now()
     };
@@ -615,8 +595,11 @@
     });
   }
 
-  // Update Preview & Images
-  // ... (previous image, video, and review functions remain here)
+  function updatePreview() { ... }
+  function updateImages() { ... }
+  function changeImage(index) { ... }
+  function updateVideo() { ... }
+  function addReview() { ... }
 </script>
 
 </body>
